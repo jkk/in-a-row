@@ -1,4 +1,4 @@
-(ns org.interlock.minimax
+(ns org.interlock.minimax.main
   (:use [clojure.contrib.seq-utils :only [positions]]))
 
 (def dim 3)      ;; 3x3, 3-in-a-row = tic-tac-toe
@@ -9,8 +9,13 @@
 (defn- int->letter [x] (char (+ (int \A) x)))
 (defn- letter->int [c] (- (int c) (int \A)))
 (defn- to-int [x] (try (Integer. x) (catch Exception _ nil)))
-;(defn- indexed [v] (map vector (iterate inc 0) v))
-;(defn- indexes-of [x v] (map first (filter #(= x (second %)) (indexed v))))
+
+(defn parse-coord [coord]
+  "Accepts a symbol or keyword and returns [column row]"
+  [(letter->int (.charAt (.toUpperCase (name coord)) 0))
+   (dec (to-int (.substring (name coord) 1)))])
+
+(def opposite {:x :o, :o :x})
 
 (defn render-board [board]
   (apply str
@@ -20,6 +25,7 @@
               (partition dim (map {:x " X" :o " O" :e " ."} board)))))
 
 (defn in-a-row? [val n coll]
+  "Whether val appears n times consecutively in coll"
   (some #(every? (partial = val) %)
         (partition n 1 coll)))
 
@@ -31,13 +37,9 @@
                       [inc dec])]
     (some #(in-a-row? mark in-a-row %) (concat rows cols diags))))
 
-;; :a2 => [0 1]
-(defn parse-coord [coord]
-  [(letter->int (.charAt (.toUpperCase (name coord)) 0))
-   (dec (to-int (.substring (name coord) 1)))])
 
-(defn opposite [mark]
-  (mark {:x :o :o :x}))
+
+
 
 ;;  1 on win for mark
 ;; -1 on win for (opposite mark)
